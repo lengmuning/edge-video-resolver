@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="解析并下载 X、Instagram 与 TikTok 的公开视频，支持 iPhone 快捷指令。" />
+    <title>视频下载 · X / Instagram / TikTok</title>
+    <link rel="stylesheet" href="/style.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬇️</text></svg>"
+    />
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>视频下载</h1>
+        <p class="subtitle">支持 X、Instagram 与 TikTok · 粘贴链接即可解析</p>
+      </header>
+
+      <form class="form" id="form" autocomplete="off">
+        <label class="sr-only" for="url-input">视频链接</label>
+        <input
+          class="url-input"
+          id="url-input"
+          type="url"
+          inputmode="url"
+          placeholder="粘贴 X、Instagram 或 TikTok 链接…"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+          required
+        />
+        <button class="btn" id="submit-btn" type="submit">解析</button>
+      </form>
+
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+
+      <section id="result" aria-live="polite"></section>
+
+      <footer>
+        <p>
+          仅支持公开内容，仅供个人备份与离线观看。<br />
+          请尊重创作者版权，勿二次分发。
+        </p>
+        <p>快捷指令接口：<code id="api-hint">/api/resolve?url=…</code></p>
+      </footer>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

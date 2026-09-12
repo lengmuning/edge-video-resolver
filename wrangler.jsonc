@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "download-x",
+  "main": "src/index.ts",
+
+  // ─────────────────────────────────────────────────────────────────────
+  //  运行时版本锁定
+  //
+  //  compatibility_date 就是 Workers 的运行时锁定机制：它固定住所有该日期
+  //  及之前的运行时行为变更。官方明确「运行时将永久支持旧的兼容性日期」，
+  //  因此锁定后行为不会漂移，也不会被强制升级。
+  //
+  //  注意两点：
+  //   1. 日期不能是未来 —— 会报错 code 10021，且按 UTC 校验（本地时区超前
+  //      会踩坑）。若部署报此错，回退一天即可。
+  //   2. 不需要写 "nodejs_compat"。官方 changelog 明确：自
+  //      compatibility_date 2026-08-04 起，nodejs_compat 与
+  //      nodejs_compat_v2 默认开启，且「Wrangler、Miniflare、Vite 插件、
+  //      Vitest Pool 在启动运行时会忽略这些冗余标志」—— 写了不报错，
+  //      只是被忽略。加上它只会让人误以为它是必需的。
+  //      来源：developers.cloudflare.com/changelog/post/2026-08-04-nodejs-compat-default/
+  // ─────────────────────────────────────────────────────────────────────
+  "compatibility_date": "2026-09-12",
+
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+
+    // 只有 /api/* 会唤醒 Worker；其余静态资源由边缘直接返回，
+    // 免费且不计入请求额度。
+    "run_worker_first": ["/api/*"]
+  }
+}
