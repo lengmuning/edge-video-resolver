@@ -4,6 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
+    <!-- 让 iOS Safari 的地址栏/状态栏与页面背景同色 -->
+    <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)" />
+    <!-- 推文 ID 等长数字会被 iOS 误识别为电话号码 -->
+    <meta name="format-detection" content="telephone=no" />
     <meta name="description" content="解析并下载 X、Instagram 与 TikTok 的公开视频，支持 iPhone 快捷指令。" />
     <title>视频下载 · X / Instagram / TikTok</title>
     <link rel="stylesheet" href="/style.css" />
@@ -16,22 +21,30 @@
     <div class="wrap">
       <header>
         <h1>视频下载</h1>
-        <p class="subtitle">支持 X、Instagram 与 TikTok · 粘贴链接即可解析</p>
+        <p class="subtitle">支持 X、Instagram 与 TikTok · 粘贴链接或分享文字即可解析</p>
       </header>
 
       <form class="form" id="form" autocomplete="off">
         <label class="sr-only" for="url-input">视频链接</label>
-        <input
-          class="url-input"
-          id="url-input"
-          type="url"
-          inputmode="url"
-          placeholder="粘贴 X、Instagram 或 TikTok 链接…"
-          autocapitalize="off"
-          autocorrect="off"
-          spellcheck="false"
-          required
-        />
+        <div class="field">
+          <!--
+            type="text" 而非 "url"：App 分享出来的常是「文案 + 链接」，
+            type="url" 的表单校验会直接拦下，链接由 app.js 负责抠出来。
+          -->
+          <input
+            class="url-input"
+            id="url-input"
+            type="text"
+            inputmode="url"
+            enterkeyhint="go"
+            placeholder="粘贴 X、Instagram 或 TikTok 链接…"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+            required
+          />
+          <button class="paste-btn" id="paste-btn" type="button" hidden>粘贴</button>
+        </div>
         <button class="btn" id="submit-btn" type="submit">解析</button>
       </form>
 

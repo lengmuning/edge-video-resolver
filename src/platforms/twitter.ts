@@ -1,5 +1,5 @@
 import { syndicationToken } from '../lib/twitter-token';
-import { readTextCapped } from '../lib/http';
+import { readTextCapped, upstreamFailure, upstreamSignal } from '../lib/http';
 import { formatBitrate } from '../lib/format';
 import {
   ApiError,
@@ -144,11 +144,12 @@ async function fetchTweet(tweetId: string): Promise<SyndicationTweet> {
   try {
     res = await fetch(endpoint, {
       headers: { 'User-Agent': UA, Accept: 'application/json' },
+      signal: upstreamSignal(),
     });
   } catch (cause) {
     // 原始异常挂到 cause 上：响应里不暴露，但日志里能看到真实原因
     // （DNS 失败 / 连接超时 / TLS 错误等），否则线上只能看到一个笼统的 502。
-    throw new ApiError(502, 'upstream_unreachable', '无法连接 X 服务', '请稍后重试。', { cause });
+    throw upstreamFailure('X', cause);
   }
 
   // ⚠️ X 对不存在的推文有两种不同的错误形态，实测：

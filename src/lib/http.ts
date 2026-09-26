@@ -29,6 +29,33 @@ export function json(data: unknown, status = 200): Response {
   });
 }
 
+/**
+ * 上游请求的超时时间。
+ *
+ * fetch 本身没有默认超时 —— 上游一旦挂起，请求会一直耗到 Workers 的
+ * 墙钟上限：网页一直转圈，快捷指令卡死在「获取 URL 内容」这一步。
+ * 正常情况下三个平台都在几秒内返回，10 秒足够宽裕。
+ */
+const UPSTREAM_TIMEOUT_MS = 10_000;
+
+/** 给上游 fetch 用的超时信号。它同样约束响应体的读取。 */
+export function upstreamSignal(ms = UPSTREAM_TIMEOUT_MS): AbortSignal {
+  return AbortSignal.timeout(ms);
+}
+
+function isTimeout(err: unknown): boolean {
+  return (err as { name?: unknown } | null)?.name === 'TimeoutError';
+}
+
+/** 把上游 fetch 抛出的异常转成对用户有意义的错误：超时与连不上分开报。 */
+export function upstreamFailure(platform: string, cause: unknown): ApiError {
+  return isTimeout(cause)
+    ? new ApiError(504, 'upstream_timeout', `${platform} 响应超时`, '请稍后重试。', { cause })
+    : new ApiError(502, 'upstream_unreachable', `无法连接 ${platform}`, '请稍后重试。', {
+        cause,
+      });
+}
+
 export function preflight(): Response {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
@@ -50,6 +77,14 @@ export function errorResponse(err: unknown): Response {
         },
       },
       err.status,
+    );
+  }
+
+  // 超时发生在读响应体阶段时（fetch 已返回、body 还没读完），
+  // 不会经过各平台的 catch，在这里兜住，否则会被报成「服务内部错误」。
+  if (isTimeout(err)) {
+    return errorResponse(
+      new ApiError(504, 'upstream_timeout', '上游平台响应超时', '请稍后重试。', { cause: err }),
     );
   }
 

@@ -1,4 +1,4 @@
-import { readTextCapped } from '../lib/http';
+import { readTextCapped, upstreamFailure, upstreamSignal } from '../lib/http';
 import { formatBitrate } from '../lib/format';
 import {
   ApiError,
@@ -201,11 +201,10 @@ async function fetchItem(canonicalUrl: string): Promise<ItemFetchResult> {
         'Accept-Language': 'en-US,en;q=0.9',
       },
       redirect: 'follow',
+      signal: upstreamSignal(),
     });
   } catch (cause) {
-    throw new ApiError(502, 'upstream_unreachable', '无法连接 TikTok', '请稍后重试。', {
-      cause,
-    });
+    throw upstreamFailure('TikTok', cause);
   }
 
   if (!res.ok) {
@@ -248,7 +247,8 @@ async function fetchOEmbed(canonicalUrl: string): Promise<OEmbed | null> {
   try {
     const res = await fetch(
       `https://www.tiktok.com/oembed?url=${encodeURIComponent(canonicalUrl)}`,
-      { headers: { 'User-Agent': UA } },
+      // 只是失败时的补充信息，不值得让用户多等，超时给短一些
+      { headers: { 'User-Agent': UA }, signal: upstreamSignal(5_000) },
     );
     if (!res.ok) return null;
     return (await res.json()) as OEmbed;
@@ -276,6 +276,7 @@ export const tiktokResolver: PlatformResolver = {
         const res = await fetch(ctx.url.href, {
           headers: { 'User-Agent': UA },
           redirect: 'follow',
+          signal: upstreamSignal(),
         });
         const resolvedId = new URL(res.url).pathname.match(/\/video\/(\d{6,25})/)?.[1];
         if (!resolvedId) {

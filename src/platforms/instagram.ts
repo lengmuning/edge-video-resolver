@@ -52,7 +52,7 @@
  * ═══════════════════════════════════════════════════════════════════════
  */
 
-import { readTextCapped } from '../lib/http';
+import { readTextCapped, upstreamFailure, upstreamSignal } from '../lib/http';
 import {
   ApiError,
   type MediaResult,
@@ -202,9 +202,10 @@ export const instagramResolver: PlatformResolver = {
           Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
           'Accept-Language': 'en-US,en;q=0.9',
         },
+        signal: upstreamSignal(),
       });
-    } catch {
-      throw new ApiError(502, 'upstream_unreachable', '无法连接 Instagram', '请稍后重试。');
+    } catch (cause) {
+      throw upstreamFailure('Instagram', cause);
     }
 
     // 302/303 说明被判定为未登录访问
